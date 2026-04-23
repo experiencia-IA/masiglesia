@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Misiones - Mapa Departamental de Círculos</title>
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: #eaf4e5;
+            overflow: hidden;
+        }
+        #map {
+            height: 100vh;
+            width: 100%;
+            z-index: 1;
+        }
+        
+        /* Panel lateral izquierdo */
+        .left-vertical-panel {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 45px;
+            background: rgba(31, 84, 48, 0.85);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1500;
+            pointer-events: none;
+            border-right: 2px solid #e9c46a;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        .vertical-text {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            color: white;
+            font-weight: bold;
+            font-size: 1.3rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-family: 'Segoe UI', sans-serif;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            white-space: nowrap;
+        }
+        
+        /* Modal lateral derecho */
+        .side-modal {
+            display: flex;
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            width: 320px;
+            background: white;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.2);
+            z-index: 2000;
+            flex-direction: column;
+            overflow: hidden;
+            border-left: 4px solid #2a6b2f;
+        }
+        @media (max-width: 768px) {
+            .side-modal { width: 280px; }
+        }
+        @media (max-width: 550px) {
+            .side-modal { width: 100%; left: 0; right: 0; border-left: none; border-top: 4px solid #2a6b2f; }
+            .left-vertical-panel { width: 35px; }
+            .vertical-text { font-size: 1rem; }
+            .reset-button { left: 50px; }
+            .info-leyenda { left: 50px; }
+        }
+        
+        .side-modal-header {
+            background: #1f5430;
+            color: white;
+            padding: 18px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .side-modal-header h2 {
+            margin: 0;
+            font-size: 1.3rem;
+            letter-spacing: 1px;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .modal-actions button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+            padding: 4px;
+        }
+        .modal-actions button:hover {
+            transform: scale(1.1);
+        }
+        .print-btn {
+            font-size: 1.1rem;
+        }
+        .close-modal {
+            font-size: 1.6rem;
+            line-height: 1;
+        }
+        .side-modal-body {
+            padding: 20px 24px;
+            flex: 1;
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+        .side-modal-body h3 {
+            color: #1f5430;
+            border-left: 5px solid #3d9b4a;
+            padding-left: 12px;
+            margin: 18px 0 12px 0;
+        }
+        .side-modal-body h3:first-of-type {
+            margin-top: 0;
+        }
+        .departamentos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .depto-badge {
+            background: #eef2e8;
+            padding: 8px 8px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #1f5430;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            border: 1px solid #c0d6b3;
+        }
+        .depto-badge:hover {
+            background: #cfe3c4;
+            transform: translateY(-2px);
+        }
+        .ciudades-lista {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .ciudad-badge {
+            background: #eef2e8;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1f5430;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #c0d6b3;
+        }
+        .ciudad-badge:hover {
+            background: #cfe3c4;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px,1fr));
+            gap: 12px;
+            margin: 15px 0;
+        }
+        .stat-card {
+            background: #f9fbf6;
+            border-radius: 20px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .stat-number {
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: #2a752d;
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #5f7557;
+            letter-spacing: 1px;
+            margin-top: 6px;
+        }
+        .nivel-activo {
+            font-size: 0.75rem;
+            background: #e5efe0;
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 50px;
+            margin-bottom: 10px;
+            color: #2b5c2b;
+        }
+        .reset-button {
+            position: fixed;
+            bottom: 20px;
+            left: 60px;
+            background: #1f5430;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        .reset-button:hover { background: #133d21; }
+        .info-leyenda {
+            position: fixed;
+            bottom: 20px;
+            left: 60px;
+            background: rgba(255,255,255,0.9);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            z-index: 1000;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+            pointer-events: none;
+            backdrop-filter: blur(4px);
+            font-weight: 500;
+        }
+        .leaflet-control-zoom { display: none !important; }
+        .depto-circle {
+            transition: all 0.2s;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    
+    <div class="left-vertical-panel">
+        <div class="vertical-text">Misiones - Argentina</div>
+    </div>
+    
+    <div id="sideModal" class="side-modal">
+        <div class="side-modal-header">
+            <h2 id="modal-departamento">Departamentos de Misiones</h2>
+            <div class="modal-actions">
+                <button id="printModalBtn" class="print-btn" title="Imprimir contenido">🖨️</button>
+                <button id="closeSideModalBtn" class="close-modal" title="Cerrar modal">×</button>
+            </div>
+        </div>
+        <div class="side-modal-body" id="side-modal-body">
+            <!-- contenido dinámico -->
+        </div>
+    </div>
+    
+    <button class="reset-button" id="resetViewBtn">📍 Vista completa de Misiones</button>
+    <div class="info-leyenda">✨ Círculos = Departamentos | Puntos = Ciudades | Clic fuera = Reiniciar panel</div>
+
+    <script>
+        // --------------------------------------------------------------
+        // DATOS
+        // --------------------------------------------------------------
+        const departamentosData = {
+            "Capital": { ciudades: ["Posadas", "Garupá", "Miguel Lanús"], pastores:48, discipuladores:124, plantadores:18, mentores:32, nuevasIglesias:9 },
+            "Apóstoles": { ciudades: ["Apóstoles", "Azara", "Tres Capones"], pastores:22, discipuladores:67, plantadores:8, mentores:14, nuevasIglesias:4 },
+            "Cainguás": { ciudades: ["Campo Grande", "Aristóbulo del Valle", "Dos de Mayo"], pastores:27, discipuladores:89, plantadores:10, mentores:18, nuevasIglesias:6 },
+            "Candelaria": { ciudades: ["Santa Ana", "Candelaria", "Loreto", "Bonpland"], pastores:18, discipuladores:52, plantadores:6, mentores:11, nuevasIglesias:3 },
+            "Concepción de la Sierra": { ciudades: ["Concepción de la Sierra", "Santa María"], pastores:12, discipuladores:34, plantadores:4, mentores:7, nuevasIglesias:2 },
+            "Eldorado": { ciudades: ["Eldorado", "Puerto Piray", "Colonia Delicia"], pastores:35, discipuladores:102, plantadores:14, mentores:24, nuevasIglesias:7 },
+            "General Manuel Belgrano": { ciudades: ["Bernardo de Irigoyen", "Comandante Andresito", "San Antonio"], pastores:24, discipuladores:71, plantadores:9, mentores:16, nuevasIglesias:5 },
+            "Guaraní": { ciudades: ["El Soberbio", "San Vicente", "Dos Arroyos"], pastores:19, discipuladores:55, plantadores:7, mentores:12, nuevasIglesias:4 },
+            "Iguazú": { ciudades: ["Puerto Iguazú", "Wanda", "Puerto Esperanza"], pastores:31, discipuladores:93, plantadores:12, mentores:21, nuevasIglesias:8 },
+            "Leandro N. Alem": { ciudades: ["Leandro N. Alem", "Arroyo del Medio", "Olegario V. Andrade"], pastores:26, discipuladores:77, plantadores:9, mentores:17, nuevasIglesias:5 },
+            "Libertador General San Martín": { ciudades: ["Puerto Rico", "Garuhapé", "Ruiz de Montoya"], pastores:20, discipuladores:63, plantadores:7, mentores:13, nuevasIglesias:4 },
+            "Montecarlo": { ciudades: ["Montecarlo", "Puerto Piray", "Caraguatay"], pastores:24, discipuladores:68, plantadores:8, mentores:15, nuevasIglesias:5 },
+            "Oberá": { ciudades: ["Oberá", "Campo Viera", "Colonia Alberdi", "Guaraní"], pastores:41, discipuladores:116, plantadores:16, mentores:28, nuevasIglesias:10 },
+            "San Ignacio": { ciudades: ["San Ignacio", "Corpus", "Santa Rosa"], pastores:17, discipuladores:48, plantadores:5, mentores:9, nuevasIglesias:3 },
+            "San Javier": { ciudades: ["San Javier", "Itacaruaré", "Florentino Ameghino"], pastores:15, discipuladores:42, plantadores:4, mentores:8, nuevasIglesias:2 },
+            "San Pedro": { ciudades: ["San Pedro", "Fracrán", "Yerbal Viejo"], pastores:23, discipuladores:66, plantadores:8, mentores:14, nuevasIglesias:4 },
+            "Veinticinco de Mayo": { ciudades: ["Alba Posse", "Veinticinco de Mayo", "Colonia Aurora"], pastores:14, discipuladores:38, plantadores:5, mentores:8, nuevasIglesias:2 }
+        };
+
+        // Datos por ciudad (distribución equitativa)
+        const ciudadesData = {};
+        for (const [depto, info] of Object.entries(departamentosData)) {
+            const cities = info.ciudades;
+            const totalPastores = info.pastores;
+            const totalDiscip = info.discipuladores;
+            const totalPlant = info.plantadores;
+            const totalMent = info.mentores;
+            const totalIglesias = info.nuevasIglesias;
+            const n = cities.length;
+            let sumP = 0, sumD = 0, sumPl = 0, sumM = 0, sumI = 0;
+            for (let i = 0; i < n; i++) {
+                let p = Math.floor(totalPastores / n);
+                let d = Math.floor(totalDiscip / n);
+                let pl = Math.floor(totalPlant / n);
+                let m = Math.floor(totalMent / n);
+                let ig = Math.floor(totalIglesias / n);
+                if (i === n-1) {
+                    p = totalPastores - sumP;
+                    d = totalDiscip - sumD;
+                    pl = totalPlant - sumPl;
+                    m = totalMent - sumM;
+                    ig = totalIglesias - sumI;
+                }
+                sumP += p; sumD += d; sumPl += pl; sumM += m; sumI += ig;
+                ciudadesData[cities[i]] = {
+                    departamento: depto,
+                    pastores: p,
+                    discipuladores: d,
+                    plantadores: pl,
+                    mentores: m,
+                    nuevasIglesias: ig
+                };
+            }
+        }
+
+        // Coordenadas y colores
+        const coordsDepto = {
+            "Capital": [-27.366, -55.896], "Apóstoles": [-27.914, -55.752], "Cainguás": [-27.000, -54.670],
+            "Candelaria": [-27.462, -55.576], "Concepción de la Sierra": [-27.983, -55.521], "Eldorado": [-26.404, -54.629],
+            "General Manuel Belgrano": [-25.903, -54.135], "Guaraní": [-26.857, -54.257], "Iguazú": [-25.610, -54.478],
+            "Leandro N. Alem": [-27.600, -55.320], "Libertador General San Martín": [-26.791, -55.020], "Montecarlo": [-26.566, -54.750],
+            "Oberá": [-27.486, -55.119], "San Ignacio": [-27.257, -55.535], "San Javier": [-27.875, -55.133],
+            "San Pedro": [-26.618, -54.133], "Veinticinco de Mayo": [-27.378, -54.364]
+        };
+
+        const coloresDepto = {
+            "Capital": "#2c6e2c", "Apóstoles": "#3e7c3e", "Cainguás": "#508a50", "Candelaria": "#629862",
+            "Concepción de la Sierra": "#74a674", "Eldorado": "#438a43", "General Manuel Belgrano": "#56a156",
+            "Guaraní": "#68b268", "Iguazú": "#7ac47a", "Leandro N. Alem": "#2a7a2a", "Libertador General San Martín": "#3c8c3c",
+            "Montecarlo": "#4e9e4e", "Oberá": "#60b060", "San Ignacio": "#72c272", "San Javier": "#84d484",
+            "San Pedro": "#2f7430", "Veinticinco de Mayo": "#419141"
+        };
+
+        // --------------------------------------------------------------
+        // MAPA (zoom fijo)
+        // --------------------------------------------------------------
+        const map = L.map('map', {
+            zoomControl: false,
+            doubleClickZoom: false,
+            scrollWheelZoom: false,
+            boxZoom: false,
+            touchZoom: false,
+            dragging: true
+        }).setView([-26.9, -54.9], 7.8);
+
+        map.getContainer().addEventListener('wheel', e => e.preventDefault(), { passive: false });
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; CARTO',
+            subdomains: 'abcd', maxZoom: 19, minZoom: 7
+        }).addTo(map);
+
+        // --------------------------------------------------------------
+        // CÍRCULOS DEPARTAMENTALES
+        // --------------------------------------------------------------
+        Object.entries(departamentosData).forEach(([depto, info]) => {
+            const coords = coordsDepto[depto];
+            if (!coords) return;
+            const color = coloresDepto[depto];
+            const circle = L.circleMarker(coords, {
+                radius: 18,
+                fillColor: color,
+                color: "#ffffff",
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.8,
+                className: "depto-circle"
+            }).addTo(map);
+            
+            circle.bindTooltip(depto, { sticky: true, direction: 'top' });
+            circle.on('click', (e) => {
+                L.DomEvent.stopPropagation(e);
+                mostrarModalDepartamento(depto);
+            });
+            circle.on('mouseover', function() { this.setStyle({ weight: 4, fillOpacity: 0.95, radius: 22 }); });
+            circle.on('mouseout', function() { this.setStyle({ weight: 2, fillOpacity: 0.8, radius: 18 }); });
+        });
+
+        // --------------------------------------------------------------
+        // MARCADORES DE CIUDADES
+        // --------------------------------------------------------------
+        const ciudadIcon = L.divIcon({ 
+            html: '<div style="background:#2a6b2f; width:8px; height:8px; border-radius:50%; border:2px solid white; box-shadow:0 0 2px black;"></div>', 
+            iconSize: [12,12], 
+            className: 'city-marker' 
+        });
+        
+        for (const [depto, info] of Object.entries(departamentosData)) {
+            const baseCoord = coordsDepto[depto];
+            if (!baseCoord) continue;
+            info.ciudades.forEach((ciudad, idx) => {
+                let lat = baseCoord[0] + (idx * 0.045) - 0.04;
+                let lng = baseCoord[1] + (idx * 0.055) - 0.03;
+                const marker = L.marker([lat, lng], { icon: ciudadIcon }).addTo(map);
+                marker.bindTooltip(ciudad, { sticky: true, direction: 'top' });
+                marker.on('click', (e) => {
+                    L.DomEvent.stopPropagation(e);
+                    mostrarModalCiudad(ciudad, depto);
+                });
+            });
+        }
+
+        // Ajustar bounds
+        const todasCoords = Object.values(coordsDepto);
+        const lats = todasCoords.map(c => c[0]);
+        const lngs = todasCoords.map(c => c[1]);
+        const minLat = Math.min(...lats) - 0.5;
+        const maxLat = Math.max(...lats) + 0.5;
+        const minLng = Math.min(...lngs) - 0.8;
+        const maxLng = Math.max(...lngs) + 0.8;
+        const bounds = [[minLat, minLng], [maxLat, maxLng]];
+        map.fitBounds(bounds);
+        map.setMaxBounds(bounds);
+        map.setMinZoom(map.getZoom());
+        map.setMaxZoom(map.getZoom());
+
+        // --------------------------------------------------------------
+        // MODAL Y REINICIO AL HACER CLIC FUERA DE CÍRCULOS/MARCADORES
+        // --------------------------------------------------------------
+        const sideModal = document.getElementById('sideModal');
+        const modalTitle = document.getElementById('modal-departamento');
+        const modalBody = document.getElementById('side-modal-body');
+
+        function mostrarListaDepartamentos() {
+            modalTitle.innerHTML = "Departamentos de Misiones";
+            let html = `
+                <div class="nivel-activo">📌 Seleccione un departamento para ver sus datos</div>
+                <h3>🏞️ Departamentos</h3>
+                <div class="departamentos-grid" id="deptos-grid">
+                    ${Object.keys(departamentosData).map(d => `<div class="depto-badge" data-depto="${d}">${d}</div>`).join('')}
+                </div>
+                <p style="font-size:0.75rem; text-align:center; margin-top:15px;">Haga clic en un departamento o en los círculos del mapa.</p>
+            `;
+            modalBody.innerHTML = html;
+            document.querySelectorAll('.depto-badge').forEach(badge => {
+                badge.addEventListener('click', (e) => {
+                    const depto = badge.getAttribute('data-depto');
+                    mostrarModalDepartamento(depto);
+                });
+            });
+        }
+
+        function mostrarModalDepartamento(departamento) {
+            const dataDepto = departamentosData[departamento];
+            if (!dataDepto) return;
+            if (sideModal.style.display === 'none') sideModal.style.display = 'flex';
+            modalTitle.innerHTML = departamento;
+            let html = `
+                <div class="nivel-activo">📊 Mostrando: <strong>TOTAL del departamento</strong> (clic en ciudad para ver datos)</div>
+                <h3>🏙️ Ciudades principales</h3>
+                <div class="ciudades-lista">
+                    ${dataDepto.ciudades.map(c => `<span class="ciudad-badge" data-ciudad="${c}">${c}</span>`).join('')}
+                </div>
+                <h3>⛪ Datos de Misión (departamento)</h3>
+                <div class="stat-grid">
+                    <div class="stat-card"><div class="stat-number">${dataDepto.pastores}</div><div class="stat-label">Pastores</div></div>
+                    <div class="stat-card"><div class="stat-number">${dataDepto.discipuladores}</div><div class="stat-label">Discipuladores</div></div>
+                    <div class="stat-card"><div class="stat-number">${dataDepto.plantadores}</div><div class="stat-label">Plantadores</div></div>
+                    <div class="stat-card"><div class="stat-number">${dataDepto.mentores}</div><div class="stat-label">Mentores</div></div>
+                    <div class="stat-card"><div class="stat-number">${dataDepto.nuevasIglesias}</div><div class="stat-label">Nuevas Iglesias</div></div>
+                </div>
+                <p style="font-size:0.7rem; text-align:center; margin-top:10px;">Datos estratégicos - Actualización 2025</p>
+            `;
+            modalBody.innerHTML = html;
+            attachCityBadgeEvents();
+        }
+
+        function mostrarModalCiudad(ciudad, departamento) {
+            const ciudadInfo = ciudadesData[ciudad];
+            if (!ciudadInfo) return;
+            if (sideModal.style.display === 'none') sideModal.style.display = 'flex';
+            modalTitle.innerHTML = `${ciudad} · ${departamento}`;
+            const dataDepto = departamentosData[departamento];
+            let html = `
+                <div class="nivel-activo">📍 Mostrando datos de la ciudad: <strong>${ciudad}</strong></div>
+                <h3>🏙️ Otras ciudades del departamento</h3>
+                <div class="ciudades-lista">
+                    ${dataDepto.ciudades.map(c => `<span class="ciudad-badge" data-ciudad="${c}">${c}</span>`).join('')}
+                </div>
+                <h3>⛪ Indicadores para ${ciudad}</h3>
+                <div class="stat-grid">
+                    <div class="stat-card"><div class="stat-number">${ciudadInfo.pastores}</div><div class="stat-label">Pastores</div></div>
+                    <div class="stat-card"><div class="stat-number">${ciudadInfo.discipuladores}</div><div class="stat-label">Discipuladores</div></div>
+                    <div class="stat-card"><div class="stat-number">${ciudadInfo.plantadores}</div><div class="stat-label">Plantadores</div></div>
+                    <div class="stat-card"><div class="stat-number">${ciudadInfo.mentores}</div><div class="stat-label">Mentores</div></div>
+                    <div class="stat-card"><div class="stat-number">${ciudadInfo.nuevasIglesias}</div><div class="stat-label">Nuevas Iglesias</div></div>
+                </div>
+                <p style="font-size:0.7rem; text-align:center;">* Datos desagregados por ciudad</p>
+            `;
+            modalBody.innerHTML = html;
+            attachCityBadgeEvents();
+        }
+
+        function attachCityBadgeEvents() {
+            document.querySelectorAll('.ciudad-badge').forEach(badge => {
+                badge.removeEventListener('click', window.cityClickHandler);
+                const handler = (e) => {
+                    e.stopPropagation();
+                    const ciudadNom = badge.getAttribute('data-ciudad');
+                    const deptoRef = ciudadesData[ciudadNom]?.departamento;
+                    if (deptoRef) mostrarModalCiudad(ciudadNom, deptoRef);
+                };
+                badge.addEventListener('click', handler);
+                badge.cityClickHandler = handler;
+            });
+        }
+
+        // ----- REINICIO DEL MODAL AL HACER CLIC EN EL MAPA (fuera de círculos y marcadores) -----
+        map.on('click', function(e) {
+            // Verificar si el clic fue sobre un círculo departamental o un marcador de ciudad
+            let clickedOnElement = false;
+            map.eachLayer(layer => {
+                if (layer instanceof L.CircleMarker) {
+                    const latlng = layer.getLatLng();
+                    const distance = map.distance(latlng, e.latlng);
+                    if (distance < 30) { // radio de tolerancia
+                        clickedOnElement = true;
+                    }
+                }
+                if (layer instanceof L.Marker && layer.options.icon && layer.options.icon.className === 'city-marker') {
+                    const latlng = layer.getLatLng();
+                    const distance = map.distance(latlng, e.latlng);
+                    if (distance < 30) {
+                        clickedOnElement = true;
+                    }
+                }
+            });
+            if (!clickedOnElement) {
+                // Reiniciar modal a la lista de departamentos
+                mostrarListaDepartamentos();
+                if (sideModal.style.display === 'none') sideModal.style.display = 'flex';
+            }
+        });
+
+        // Cerrar modal con botón
+        document.getElementById('closeSideModalBtn').addEventListener('click', () => {
+            sideModal.style.display = 'none';
+        });
+
+        // Impresión
+        document.getElementById('printModalBtn').addEventListener('click', () => {
+            const contenido = modalBody.innerHTML;
+            const titulo = modalTitle.innerText;
+            const ventana = window.open('', '_blank');
+            ventana.document.write(`
+                <html>
+                <head>
+                    <title>Imprimir - ${titulo}</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; }
+                        h2 { color: #1f5430; }
+                        .stat-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin: 20px 0; }
+                        .stat-card { border: 1px solid #ccc; padding: 10px; border-radius: 12px; text-align: center; }
+                        .stat-number { font-size: 1.8rem; font-weight: bold; color: #2a752d; }
+                        .ciudades-lista { display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0; }
+                        .ciudad-badge { background: #eef2e8; padding: 4px 12px; border-radius: 30px; }
+                        .nivel-activo { background: #e5efe0; padding: 4px 8px; border-radius: 20px; display: inline-block; }
+                        @media print {
+                            body { margin: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h2>${titulo}</h2>
+                    ${contenido}
+                    <p style="margin-top: 30px; font-size: 0.8em;">Documento generado desde Mapa Estratégico de Misiones</p>
+                </body>
+                </html>
+            `);
+            ventana.document.close();
+            ventana.print();
+        });
+
+        // Botón reset vista
+        document.getElementById('resetViewBtn').addEventListener('click', () => {
+            map.fitBounds(bounds);
+            map.setZoom(map.getZoom());
+        });
+
+        // Inicializar modal con lista de departamentos
+        mostrarListaDepartamentos();
+
+        console.log("Mapa listo: clic fuera de círculos/marcadores reinicia el panel.");
+    </script>
+</body>
+</html>

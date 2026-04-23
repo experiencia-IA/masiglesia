@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Retiro · Plantadores | Más Iglesias</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #f4f7fc;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 30px 30px;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            border: 1px solid #eef2f6;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #8b4513 0%, #cd7a32 100%);
+            padding: 1.5rem 2rem;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .hero h1 {
+            font-size: 1.7rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .hero h1 span {
+            background: #e2a628;
+            font-size: 0.8rem;
+            padding: 4px 12px;
+            border-radius: 60px;
+            color: #2c1a0c;
+        }
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .btn-nuevo {
+            background: #e2a628;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 60px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+        .btn-nuevo:hover { background: #cf921b; transform: scale(0.97);}
+        .print-btn {
+            background: #2c4b60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 60px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .print-btn:hover { background: #1f3a4b; }
+
+        /* filtros */
+        .filters-panel {
+            padding: 20px 28px 0 28px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+            background: white;
+            border-bottom: 1px solid #ecf3f9;
+        }
+        .filter-group {
+            flex: 1;
+            min-width: 170px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .filter-group label {
+            font-weight: 700;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #4b6b7f;
+        }
+        .filter-group input, .filter-group select {
+            padding: 10px 14px;
+            border-radius: 20px;
+            border: 1.5px solid #e2edf2;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-reset-filters {
+            background: #eef2f8;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 36px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* tabla */
+        .table-wrapper {
+            margin: 20px 28px;
+            overflow-x: auto;
+            border-radius: 20px;
+            border: 1px solid #ecf3f9;
+            background: white;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 1000px;
+        }
+        .data-table th {
+            background: #fafcfd;
+            padding: 14px 12px;
+            text-align: left;
+            font-weight: 800;
+            border-bottom: 2px solid #e6edf4;
+        }
+        .data-table td {
+            padding: 12px 12px;
+            border-bottom: 1px solid #eff3f8;
+        }
+        .badge-perfil {
+            background: #fef3c7;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-block;
+        }
+        .modulos-badge {
+            background: #e0f2fe;
+            padding: 4px 10px;
+            border-radius: 40px;
+            font-weight: 700;
+            display: inline-block;
+        }
+        .acciones {
+            display: flex;
+            gap: 8px;
+        }
+        .icon-btn {
+            background: none;
+            border: none;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        .icon-btn.edit { background: #eef2ff; color: #1e40af; }
+        .icon-btn.delete { background: #fee2e2; color: #b91c1c; }
+        .empty-row td { text-align: center; padding: 3rem; color: #6c7e91; }
+
+        /* paginación 10 registros */
+        .pagination-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 0 28px 28px 28px;
+        }
+        .pagination-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .page-btn {
+            background: #f1f5f9;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .page-btn.active {
+            background: #e2a628;
+            color: #1e2a36;
+        }
+        .page-info {
+            font-size: 0.85rem;
+            color: #2c4b60;
+            font-weight: 500;
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(10, 32, 56, 0.96);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.25s;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-container {
+            background: white;
+            width: 90%;
+            max-width: 700px;
+            border-radius: 2rem;
+            overflow: hidden;
+            animation: fadeUp 0.2s ease;
+        }
+        @keyframes fadeUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-header {
+            background: #8b4513;
+            color: white;
+            padding: 1.2rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 { font-weight: 800; }
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            color: white;
+            cursor: pointer;
+        }
+        .modal-body {
+            padding: 1.8rem 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .modal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+        }
+        .modal-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .modal-field label {
+            font-weight: 700;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #4b6b7f;
+        }
+        .modal-field input, .modal-field select {
+            padding: 12px 14px;
+            border-radius: 18px;
+            border: 1.5px solid #e2edf2;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .btn-modal-primary {
+            background: #e2a628;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 40px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .btn-modal-secondary {
+            background: #eef2f8;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .feedback-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #0a2a3b;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 60px;
+            z-index: 2100;
+            opacity: 0;
+            transition: 0.2s;
+            pointer-events: none;
+        }
+        @media print {
+            .hero-actions, .filters-panel, .pagination-bar, .modal-overlay, .acciones, .icon-btn {
+                display: none !important;
+            }
+            .table-wrapper { margin: 0; border: none; }
+            body { background: white; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="hero">
+        <h1>🏕️ RETIRO · PLANTADORES <span>Más Iglesias</span></h1>
+        <div class="hero-actions">
+            <button class="print-btn" id="printGlobalBtn">🖨️ Imprimir</button>
+            <button class="btn-nuevo" id="openModalBtn">+ Nuevo plantador / participante</button>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters-panel">
+        <div class="filter-group">
+            <label>🔍 Búsqueda (nombre/apellido/dni)</label>
+            <input type="text" id="searchInput" placeholder="Nombre, apellido o DNI...">
+        </div>
+        <div class="filter-group">
+            <label>📂 Perfil</label>
+            <select id="perfilFilter">
+                <option value="">Todos</option>
+                <option value="Pastor">Pastor</option>
+                <option value="Discipulador">Discipulador</option>
+                <option value="Plantador">Plantador</option>
+                <option value="Mentor">Mentor</option>
+                <option value="Multiplicador">Multiplicador</option>
+                <option value="Nuevo Creyente">Nuevo Creyente</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>🏠 Domicilio (contiene)</label>
+            <input type="text" id="domicilioFilter" placeholder="Ej. Av. Siempre Viva">
+        </div>
+        <button class="btn-reset-filters" id="resetFiltersBtn">Limpiar filtros</button>
+    </div>
+
+    <!-- Tabla de participantes -->
+    <div class="table-wrapper">
+        <table class="data-table" id="registrosTabla">
+            <thead>
+                <tr><th>N°</th><th>Apellido</th><th>Nombre</th><th>DNI</th><th>Domicilio</th><th>Ciudad</th><th>Perfil</th><th>Módulos</th><th>Acciones</th></tr>
+            </thead>
+            <tbody id="tablaBody">
+                <tr class="empty-row"><td colspan="9">No hay registros. Haz clic en "Nuevo plantador / participante" para comenzar.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Paginación (10 por página) -->
+    <div class="pagination-bar">
+        <div class="page-info" id="pageInfoText">Mostrando 0-0 de 0 registros</div>
+        <div class="pagination-controls">
+            <button class="page-btn" id="prevPageBtn">◀ Anterior</button>
+            <span id="pageNumbers"></span>
+            <button class="page-btn" id="nextPageBtn">Siguiente ▶</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para crear/editar -->
+<div id="participantModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3 id="modalTitle">Nuevo participante</h3>
+            <button class="close-modal" id="closeModalBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-grid">
+                <div class="modal-field"><label>Apellido *</label><input type="text" id="modalApellido"></div>
+                <div class="modal-field"><label>Nombre *</label><input type="text" id="modalNombre"></div>
+                <div class="modal-field"><label>DNI * (único)</label><input type="text" id="modalDni"></div>
+                <div class="modal-field"><label>Domicilio</label><input type="text" id="modalDomicilio"></div>
+                <div class="modal-field"><label>Ciudad</label><input type="text" id="modalCiudad"></div>
+                <div class="modal-field"><label>Perfil *</label>
+                    <select id="modalPerfil">
+                        <option value="Pastor">Pastor</option><option value="Discipulador">Discipulador</option>
+                        <option value="Plantador">Plantador</option><option value="Mentor">Mentor</option>
+                        <option value="Multiplicador">Multiplicador</option><option value="Nuevo Creyente">Nuevo Creyente</option>
+                    </select>
+                </div>
+                <div class="modal-field"><label>Cantidad de módulos (0-20)</label><input type="number" id="modalModulos" min="0" max="20" value="0" step="1"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal-secondary" id="cancelModalBtn">Cancelar</button>
+                <button class="btn-modal-primary" id="saveModalBtn">Guardar participante</button>
+            </div>
+            <div id="modalFeedback" style="font-size:0.75rem; color:#b91c1c; margin-top: 6px;"></div>
+        </div>
+    </div>
+</div>
+
+<div id="feedbackToast" class="feedback-toast">✔️ Acción completada</div>
+
+<script>
+    // ---------- SIN DATOS FICTICIOS: array vacío ----------
+    let participantes = [];      // { id, apellido, nombre, dni, domicilio, ciudad, perfil, modulos }
+    let editandoId = null;
+    
+    // Paginación fija 10 registros por página
+    let paginaActual = 1;
+    const REG_POR_PAGINA = 10;
+    
+    // Filtros
+    let filtroBusqueda = "";
+    let filtroPerfil = "";
+    let filtroDomicilio = "";
+    
+    // Elementos DOM
+    const tablaBody = document.getElementById('tablaBody');
+    const searchInput = document.getElementById('searchInput');
+    const perfilFilter = document.getElementById('perfilFilter');
+    const domicilioFilter = document.getElementById('domicilioFilter');
+    const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+    const prevPageBtn = document.getElementById('prevPageBtn');
+    const nextPageBtn = document.getElementById('nextPageBtn');
+    const pageInfoText = document.getElementById('pageInfoText');
+    const pageNumbersSpan = document.getElementById('pageNumbers');
+    const openModalBtn = document.getElementById('openModalBtn');
+    const modalOverlay = document.getElementById('participantModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const cancelModalBtn = document.getElementById('cancelModalBtn');
+    const saveModalBtn = document.getElementById('saveModalBtn');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalApellido = document.getElementById('modalApellido');
+    const modalNombre = document.getElementById('modalNombre');
+    const modalDni = document.getElementById('modalDni');
+    const modalDomicilio = document.getElementById('modalDomicilio');
+    const modalCiudad = document.getElementById('modalCiudad');
+    const modalPerfil = document.getElementById('modalPerfil');
+    const modalModulos = document.getElementById('modalModulos');
+    const modalFeedback = document.getElementById('modalFeedback');
+    const printGlobalBtn = document.getElementById('printGlobalBtn');
+    const toast = document.getElementById('feedbackToast');
+    
+    const STORAGE_KEY = 'retiro_plantadores_participantes';
+    
+    // helpers
+    function showToast(msg, isError = false) {
+        toast.textContent = msg;
+        toast.style.backgroundColor = isError ? '#b91c1c' : '#8b4513';
+        toast.style.opacity = '1';
+        setTimeout(() => toast.style.opacity = '0', 2500);
+    }
+    
+    function guardarStorage() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(participantes));
+    }
+    
+    function cargarStorage() {
+        const data = localStorage.getItem(STORAGE_KEY);
+        if (data) {
+            participantes = JSON.parse(data);
+        } else {
+            participantes = [];   // Sin datos de ejemplo
+        }
+        participantes.sort((a,b) => b.id - a.id);
+    }
+    
+    function getRegistrosFiltrados() {
+        let filtrados = [...participantes];
+        if (filtroBusqueda.trim() !== "") {
+            const term = filtroBusqueda.trim().toLowerCase();
+            filtrados = filtrados.filter(p => 
+                p.apellido.toLowerCase().includes(term) || 
+                p.nombre.toLowerCase().includes(term) || 
+                p.dni.includes(term)
+            );
+        }
+        if (filtroPerfil !== "") {
+            filtrados = filtrados.filter(p => p.perfil === filtroPerfil);
+        }
+        if (filtroDomicilio.trim() !== "") {
+            const domTerm = filtroDomicilio.trim().toLowerCase();
+            filtrados = filtrados.filter(p => (p.domicilio || "").toLowerCase().includes(domTerm));
+        }
+        filtrados.sort((a,b) => b.id - a.id);
+        return filtrados;
+    }
+    
+    let registrosFiltradosCache = [];
+    function renderizarTabla() {
+        registrosFiltradosCache = getRegistrosFiltrados();
+        const totalRegistros = registrosFiltradosCache.length;
+        const totalPaginas = Math.ceil(totalRegistros / REG_POR_PAGINA);
+        if (paginaActual > totalPaginas && totalPaginas > 0) paginaActual = totalPaginas;
+        if (paginaActual < 1) paginaActual = 1;
+        
+        if (totalRegistros === 0) {
+            tablaBody.innerHTML = `<tr class="empty-row"><td colspan="9">📭 No hay participantes registrados. Usa el botón "Nuevo plantador / participante" para agregar.</td></tr>`;
+            actualizarInfoPaginacion(0,0,0);
+            return;
+        }
+        
+        const inicio = (paginaActual - 1) * REG_POR_PAGINA;
+        const fin = Math.min(inicio + REG_POR_PAGINA, totalRegistros);
+        const registrosPagina = registrosFiltradosCache.slice(inicio, fin);
+        
+        let html = '';
+        for (const p of registrosPagina) {
+            html += `<tr>
+                        <td style="font-weight:700;">${p.id}</td>
+                        <td>${escapeHtml(p.apellido)}</td>
+                        <td>${escapeHtml(p.nombre)}</td>
+                        <td>${escapeHtml(p.dni)}</td>
+                        <td>${escapeHtml(p.domicilio || '—')}</td>
+                        <td>${escapeHtml(p.ciudad || '—')}</td>
+                        <td><span class="badge-perfil">${escapeHtml(p.perfil)}</span></td>
+                        <td><span class="modulos-badge">📘 ${p.modulos ?? 0} módulos</span></td>
+                        <td class="acciones">
+                            <button class="icon-btn edit" data-id="${p.id}">✏️ Editar</button>
+                            <button class="icon-btn delete" data-id="${p.id}">🗑️ Eliminar</button>
+                        </td>
+                    </tr>`;
+        }
+        tablaBody.innerHTML = html;
+        actualizarInfoPaginacion(inicio+1, fin, totalRegistros);
+        renderizarBotonesPaginacion(totalPaginas);
+        
+        // eventos botones
+        document.querySelectorAll('.edit').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = parseInt(btn.getAttribute('data-id'));
+                abrirModalEdicion(id);
+            });
+        });
+        document.querySelectorAll('.delete').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = parseInt(btn.getAttribute('data-id'));
+                eliminarRegistro(id);
+            });
+        });
+    }
+    
+    function actualizarInfoPaginacion(desde, hasta, total) {
+        if (total === 0) pageInfoText.innerText = 'Mostrando 0-0 de 0 registros';
+        else pageInfoText.innerText = `Mostrando ${desde}-${hasta} de ${total} registros`;
+    }
+    
+    function renderizarBotonesPaginacion(totalPaginas) {
+        if (totalPaginas <= 1) {
+            pageNumbersSpan.innerHTML = '';
+            prevPageBtn.disabled = true;
+            nextPageBtn.disabled = true;
+            return;
+        }
+        prevPageBtn.disabled = (paginaActual === 1);
+        nextPageBtn.disabled = (paginaActual === totalPaginas);
+        let btnsHtml = '';
+        for (let i = 1; i <= totalPaginas; i++) {
+            btnsHtml += `<button class="page-btn ${i === paginaActual ? 'active' : ''}" data-page="${i}">${i}</button>`;
+        }
+        pageNumbersSpan.innerHTML = btnsHtml;
+        document.querySelectorAll('[data-page]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                paginaActual = parseInt(btn.getAttribute('data-page'));
+                renderizarTabla();
+            });
+        });
+    }
+    
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+    
+    function eliminarRegistro(id) {
+        if (confirm('⚠️ ¿Eliminar este participante permanentemente?')) {
+            participantes = participantes.filter(p => p.id !== id);
+            guardarStorage();
+            if (editandoId === id) cerrarModal();
+            paginaActual = 1;
+            renderizarTabla();
+            showToast('Registro eliminado', false);
+        }
+    }
+    
+    function abrirModalNuevo() {
+        editandoId = null;
+        modalTitle.innerText = '📝 Nuevo participante (Retiro Plantadores)';
+        modalApellido.value = '';
+        modalNombre.value = '';
+        modalDni.value = '';
+        modalDomicilio.value = '';
+        modalCiudad.value = '';
+        modalPerfil.value = 'Plantador';
+        modalModulos.value = '0';
+        modalFeedback.innerText = '';
+        modalOverlay.classList.add('active');
+    }
+    
+    function abrirModalEdicion(id) {
+        const p = participantes.find(x => x.id === id);
+        if (!p) return;
+        editandoId = p.id;
+        modalTitle.innerText = '✏️ Editar participante';
+        modalApellido.value = p.apellido;
+        modalNombre.value = p.nombre;
+        modalDni.value = p.dni;
+        modalDomicilio.value = p.domicilio || '';
+        modalCiudad.value = p.ciudad || '';
+        modalPerfil.value = p.perfil;
+        modalModulos.value = p.modulos ?? 0;
+        modalFeedback.innerText = '';
+        modalOverlay.classList.add('active');
+    }
+    
+    function cerrarModal() {
+        modalOverlay.classList.remove('active');
+        editandoId = null;
+        modalFeedback.innerText = '';
+    }
+    
+    function guardarDesdeModal() {
+        const apellido = modalApellido.value.trim();
+        const nombre = modalNombre.value.trim();
+        const dni = modalDni.value.trim();
+        const domicilio = modalDomicilio.value.trim();
+        const ciudad = modalCiudad.value.trim();
+        const perfil = modalPerfil.value;
+        let modulos = parseInt(modalModulos.value);
+        if (isNaN(modulos)) modulos = 0;
+        if (modulos < 0) modulos = 0;
+        if (modulos > 20) modulos = 20;
+        
+        if (!apellido || !nombre || !dni) {
+            modalFeedback.innerText = '❌ Apellido, Nombre y DNI son obligatorios';
+            return;
+        }
+        if (dni.length < 3) {
+            modalFeedback.innerText = '❌ DNI inválido (mínimo 3 caracteres)';
+            return;
+        }
+        const dniExiste = participantes.some(p => p.dni === dni && (editandoId === null || p.id !== editandoId));
+        if (dniExiste) {
+            modalFeedback.innerText = '⚠️ Ya existe un participante con ese DNI. Debe ser único.';
+            return;
+        }
+        
+        if (editandoId === null) {
+            const nuevoId = participantes.length === 0 ? 1 : Math.max(...participantes.map(p => p.id)) + 1;
+            participantes.push({ id: nuevoId, apellido, nombre, dni, domicilio, ciudad, perfil, modulos });
+            guardarStorage();
+            showToast(`✨ Nuevo participante N°${nuevoId} agregado`, false);
+        } else {
+            const index = participantes.findIndex(p => p.id === editandoId);
+            if (index !== -1) {
+                participantes[index] = { ...participantes[index], apellido, nombre, dni, domicilio, ciudad, perfil, modulos };
+                guardarStorage();
+                showToast('✅ Participante actualizado', false);
+            } else {
+                modalFeedback.innerText = 'Error al editar';
+                return;
+            }
+        }
+        participantes.sort((a,b) => b.id - a.id);
+        paginaActual = 1;
+        renderizarTabla();
+        cerrarModal();
+    }
+    
+    function aplicarFiltros() {
+        filtroBusqueda = searchInput.value;
+        filtroPerfil = perfilFilter.value;
+        filtroDomicilio = domicilioFilter.value;
+        paginaActual = 1;
+        renderizarTabla();
+    }
+    
+    function resetearFiltros() {
+        searchInput.value = '';
+        perfilFilter.value = '';
+        domicilioFilter.value = '';
+        filtroBusqueda = '';
+        filtroPerfil = '';
+        filtroDomicilio = '';
+        paginaActual = 1;
+        renderizarTabla();
+        showToast('Filtros limpiados', false);
+    }
+    
+    function imprimirListado() {
+        const datos = getRegistrosFiltrados();
+        if (datos.length === 0) {
+            showToast('No hay registros para imprimir', true);
+            return;
+        }
+        const ventana = window.open('', '_blank');
+        ventana.document.write(`
+            <html><head><title>Listado participantes - Retiro Plantadores</title>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+            <style>
+                body { font-family: Inter, sans-serif; padding: 2rem; }
+                table { width:100%; border-collapse: collapse; }
+                th,td { border:1px solid #aaa; padding: 8px; text-align: left; }
+                th { background: #f0f0f0; }
+            </style>
+            </head><body>
+            <h2>📋 Listado de Participantes - Retiro / Plantadores</h2>
+            <p>Fecha: ${new Date().toLocaleDateString()} | Total: ${datos.length} registros</p>
+            <table><thead><tr><th>N°</th><th>Apellido</th><th>Nombre</th><th>DNI</th><th>Domicilio</th><th>Ciudad</th><th>Perfil</th><th>Módulos</th></tr></thead><tbody>
+        `);
+        datos.forEach(p => {
+            ventana.document.write(`<tr><td>${p.id}</td><td>${escapeHtml(p.apellido)}</td><td>${escapeHtml(p.nombre)}</td><td>${escapeHtml(p.dni)}</td><td>${escapeHtml(p.domicilio||'—')}</td><td>${escapeHtml(p.ciudad||'—')}</td><td>${p.perfil}</td><td>${p.modulos??0}</td></tr>`);
+        });
+        ventana.document.write(`</tbody></table></body></html>`);
+        ventana.document.close();
+        ventana.print();
+    }
+    
+    // Event listeners
+    function bindEvents() {
+        openModalBtn.addEventListener('click', abrirModalNuevo);
+        closeModalBtn.addEventListener('click', cerrarModal);
+        cancelModalBtn.addEventListener('click', cerrarModal);
+        saveModalBtn.addEventListener('click', guardarDesdeModal);
+        searchInput.addEventListener('input', aplicarFiltros);
+        perfilFilter.addEventListener('change', aplicarFiltros);
+        domicilioFilter.addEventListener('input', aplicarFiltros);
+        resetFiltersBtn.addEventListener('click', resetearFiltros);
+        prevPageBtn.addEventListener('click', () => { if(paginaActual > 1) { paginaActual--; renderizarTabla(); } });
+        nextPageBtn.addEventListener('click', () => { const total = Math.ceil(getRegistrosFiltrados().length / REG_POR_PAGINA); if(paginaActual < total) { paginaActual++; renderizarTabla(); } });
+        printGlobalBtn.addEventListener('click', imprimirListado);
+        window.addEventListener('click', (e) => { if(e.target === modalOverlay) cerrarModal(); });
+    }
+    
+    function init() {
+        cargarStorage();
+        bindEvents();
+        renderizarTabla();
+    }
+    
+    init();
+</script>
+</body>
+</html>
