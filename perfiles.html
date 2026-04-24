@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Perfiles · Más Iglesias (Argentina)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #f4f7fc;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 30px 30px;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .app-container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            border: 1px solid #eef2f6;
+        }
+        .hero {
+            background: linear-gradient(135deg, #0e4b3a 0%, #1f7a5c 100%);
+            padding: 1.5rem 2rem;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .hero h1 { font-size: 1.7rem; font-weight: 800; display: flex; align-items: center; gap: 12px; }
+        .hero h1 span { background: #e2a628; font-size: 0.8rem; padding: 4px 12px; border-radius: 60px; color: #0a2a3b; }
+        .hero-actions { display: flex; gap: 12px; }
+        .btn-nuevo { background: #e2a628; border: none; padding: 10px 24px; border-radius: 60px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-nuevo:hover { background: #cf921b; transform: scale(0.97);}
+        .print-btn { background: #2c4b60; color: white; border: none; padding: 10px 20px; border-radius: 60px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .print-btn:hover { background: #1f3a4b; }
+        .filters-panel {
+            padding: 20px 28px 0 28px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+            background: white;
+            border-bottom: 1px solid #ecf3f9;
+        }
+        .filter-group { flex: 1; min-width: 170px; display: flex; flex-direction: column; gap: 6px; }
+        .filter-group label { font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: #4b6b7f; }
+        .filter-group input, .filter-group select { padding: 10px 14px; border-radius: 20px; border: 1.5px solid #e2edf2; font-family: 'Inter', sans-serif; }
+        .btn-reset-filters { background: #eef2f8; border: none; padding: 10px 20px; border-radius: 36px; font-weight: 600; cursor: pointer; }
+        
+        .pagination-bar-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 28px 12px 28px;
+            background: white;
+        }
+        .pagination-controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .page-btn { background: #f1f5f9; border: none; padding: 8px 16px; border-radius: 30px; font-weight: 600; cursor: pointer; }
+        .page-btn.active { background: #e2a628; color: #1e2a36; }
+        .page-info { font-size: 0.85rem; color: #2c4b60; font-weight: 500; }
+
+        /* TABLA: OCUPA TOTALIDAD SIN DESBORDE NI DESPLAZAMIENTO HORIZONTAL */
+        .table-wrapper {
+            margin: 0;
+            overflow-x: hidden;
+            background: white;
+            border-top: 1px solid #ecf3f9;
+            border-bottom: 1px solid #ecf3f9;
+            width: 100%;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            table-layout: fixed;
+        }
+        .data-table th {
+            background: #fafcfd;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 800;
+            border-bottom: 2px solid #e6edf4;
+            word-break: break-word;
+            white-space: normal;
+        }
+        .data-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #eff3f8;
+            word-break: break-word;
+            white-space: normal;
+        }
+        .data-table th:nth-child(1) { width: 6%; }
+        .data-table th:nth-child(2) { width: 12%; }
+        .data-table th:nth-child(3) { width: 12%; }
+        .data-table th:nth-child(4) { width: 6%; }
+        .data-table th:nth-child(5) { width: 12%; }
+        .data-table th:nth-child(6) { width: 18%; }
+        .data-table th:nth-child(7) { width: 12%; }
+        
+        .badge-perfil { background: #e0f2fe; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; font-weight: 700; display: inline-block; }
+        .modulos-badge { background: #fef3c7; padding: 4px 10px; border-radius: 40px; font-weight: 700; display: inline-block; }
+        .acciones { display: flex; gap: 8px; white-space: nowrap; flex-wrap: wrap; }
+        .icon-btn { background: none; border: none; font-weight: 600; padding: 5px 12px; border-radius: 30px; cursor: pointer; font-size: 0.7rem; transition: 0.1s; }
+        .icon-btn.view { background: #e0f2fe; color: #0369a1; }
+        .icon-btn.edit { background: #eef2ff; color: #1e40af; }
+        .icon-btn.delete { background: #fee2e2; color: #b91c1c; }
+        .empty-row td { text-align: center; padding: 3rem; color: #6c7e91; }
+        
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 32, 56, 0.96); display: flex; align-items: center; justify-content: center;
+            z-index: 2000; opacity: 0; visibility: hidden; transition: 0.25s; padding: 1rem;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-container {
+            background: white; width: 95%; max-width: 1200px; max-height: 90vh;
+            border-radius: 2rem; overflow-y: auto; animation: fadeUp 0.2s ease;
+        }
+        @keyframes fadeUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-header {
+            background: #0e4b3a; color: white; padding: 1.2rem 1.5rem;
+            display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10;
+        }
+        .modal-header h3 { font-weight: 800; }
+        .close-modal { background: none; border: none; font-size: 1.8rem; color: white; cursor: pointer; }
+        .modal-body { padding: 1.8rem 2rem; display: flex; flex-direction: column; gap: 1rem; }
+        .modal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem 1.5rem; }
+        .modal-field { display: flex; flex-direction: column; gap: 6px; }
+        .modal-field label { font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: #4b6b7f; }
+        .modal-field input, .modal-field select, .modal-field textarea { padding: 10px 12px; border-radius: 18px; border: 1.5px solid #e2edf2; font-family: 'Inter', sans-serif; font-size: 0.85rem; width: 100%; }
+        .modal-field textarea { resize: vertical; min-height: 60px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px; position: sticky; bottom: 0; background: white; padding: 1rem 0; }
+        .btn-modal-primary { background: #e2a628; border: none; padding: 10px 22px; border-radius: 40px; font-weight: 800; cursor: pointer; }
+        .btn-modal-secondary { background: #eef2f8; border: none; padding: 10px 22px; border-radius: 40px; font-weight: 600; cursor: pointer; }
+        .feedback-toast { 
+            position: fixed; bottom: 20px; right: 20px; 
+            background: #0a2a3b; color: white; 
+            padding: 12px 20px; border-radius: 60px; 
+            z-index: 2100; opacity: 0; transition: 0.2s; 
+            pointer-events: none;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        @media print {
+            .hero-actions, .filters-panel, .pagination-bar-top, .pagination-bar, .acciones, .icon-btn { display: none !important; }
+            .table-wrapper { margin: 0; border: none; overflow: visible; }
+            body { background: white; padding: 0; }
+            .data-table td, .data-table th { white-space: normal; }
+            .data-table { table-layout: auto; }
+        }
+        @media (max-width: 680px) {
+            .hero h1 { font-size: 1.2rem; }
+            .filters-panel { padding: 16px; }
+            .pagination-bar-top { margin: 12px 16px; }
+            .data-table th, .data-table td { font-size: 0.7rem; padding: 8px 4px; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="hero">
+        <h1>📋 PERFILES-REGISTRO GENERAL<span>Más Iglesias · Argentina</span></h1>
+        <div class="hero-actions">
+            <button class="print-btn" id="printGlobalBtn">🖨️ Imprimir</button>
+            <button class="btn-nuevo" id="openModalBtn">+ Nuevo Registro</button>
+        </div>
+    </div>
+    <div class="filters-panel">
+        <div class="filter-group"><label>🔍 Búsqueda (nombre/apellido/teléfono)</label><input type="text" id="searchInput" placeholder="Nombre, apellido o teléfono..."></div>
+        <div class="filter-group"><label>📂 Perfil (sistema)</label><select id="perfilFilter"><option value="">Todos</option><option value="Pastor">Pastor</option><option value="Discipulador">Discipulador</option><option value="Plantador">Plantador</option><option value="Mentor">Mentor</option><option value="Multiplicador">Multiplicador</option><option value="Nuevo Creyente">Nuevo Creyente</option><option value="Participante">Participante</option></select></div>
+        <div class="filter-group"><label>🏠 Domicilio / Calle (contiene)</label><input type="text" id="domicilioFilter" placeholder="Calle o barrio"></div>
+        <button class="btn-reset-filters" id="resetFiltersBtn">Limpiar filtros</button>
+    </div>
+
+    <div class="pagination-bar-top" id="paginationTop">
+        <div class="page-info" id="pageInfoText"></div>
+        <div class="pagination-controls">
+            <button class="page-btn" id="prevPageBtn">◀ Anterior</button>
+            <span id="pageNumbers"></span>
+            <button class="page-btn" id="nextPageBtn">Siguiente ▶</button>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="data-table" id="registrosTabla">
+            <thead id="tablaThead"></thead>
+            <tbody id="tablaBody"><tr class="empty-row"><td colspan="30">Cargando...</td></tr></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="participantModal" class="modal-overlay"><div class="modal-container"><div class="modal-header"><h3 id="modalTitle">Nuevo Registro</h3><button class="close-modal" id="closeModalBtn">&times;</button></div><div class="modal-body"><div class="modal-grid" id="modalFieldsContainer"></div><div class="modal-actions"><button class="btn-modal-secondary" id="cancelModalBtn">Cancelar</button><button class="btn-modal-primary" id="saveModalBtn">Guardar</button></div><div id="modalFeedback" style="font-size:0.75rem; color:#b91c1c; margin-top: 6px;"></div></div></div></div>
+<div id="feedbackToast" class="feedback-toast">✔️ Acción completada</div>
+
+<script>
+    // Esquema completo de campos
+    const CAMPOS_EXCEL = [
+        { key: "apellidos_nombres", label: "Apellidos y nombres", type: "text", required: true, tabla: true },
+        { key: "estado_civil", label: "Estado civil", type: "select", options: ["Soltero","Casado","Divorciado","Viudo","Unión libre"], tabla: true },
+        { key: "sexo", label: "Sexo", type: "select", options: ["Masculino","Femenino"], tabla: true },
+        { key: "fecha_nacimiento", label: "Fecha de nacimiento", type: "date", tabla: true },
+        { key: "edad", label: "Edad", type: "number", tabla: true },
+        { key: "numero_hijos", label: "Número de hijos", type: "text", tabla: true },
+        { key: "telefono", label: "Teléfono / DNI", type: "text", required: true, tabla: true },
+        { key: "calle", label: "Calle", type: "text", tabla: true },
+        { key: "ciudad", label: "Ciudad", type: "text", tabla: true },
+        { key: "barrio", label: "Barrio", type: "text", tabla: true },
+        { key: "departamento", label: "Departamento", type: "text", tabla: true },
+        { key: "pais", label: "País", type: "text", tabla: true },
+        { key: "ciudad_repite", label: "Ciudad (repite)", type: "text", tabla: false },
+        { key: "departamento_provincia", label: "Departamento/Región/Provincia", type: "text", tabla: true },
+        { key: "denominacion", label: "Denominación / Asociación", type: "text", tabla: true },
+        { key: "nombre_iglesia", label: "Nombre de la iglesia", type: "text", tabla: true },
+        { key: "ciudad_comuna", label: "Ciudad / Comuna", type: "text", tabla: false },
+        { key: "calle_nro", label: "Calle Nº", type: "text", tabla: false },
+        { key: "barrio2", label: "Barrio", type: "text", tabla: false },
+        { key: "departamento_region2", label: "Departamento/Región/Provincia (2)", type: "text", tabla: false },
+        { key: "nombre_pastor", label: "Nombre del pastor", type: "text", tabla: true },
+        { key: "telefono2", label: "Teléfono 2", type: "text", tabla: false },
+        { key: "antes_cristo", label: "¿Cómo era antes de conocer a Cristo?", type: "textarea", tabla: false },
+        { key: "como_conocio", label: "¿Cómo conocí a Cristo?", type: "textarea", tabla: false },
+        { key: "porque_participa", label: "¿Por qué decidió participar de este proceso?", type: "textarea", tabla: false },
+        { key: "peticiones_oracion", label: "Peticiones de oración", type: "textarea", tabla: false },
+        { key: "perfil_sistema", label: "Perfil (sistema)", type: "select", options: ["Pastor","Discipulador","Plantador","Mentor","Multiplicador","Nuevo Creyente","Participante"], required: true, tabla: true },
+        { key: "modulos", label: "Módulos (0-20)", type: "number", min: 0, max: 20, required: true, tabla: true }
+    ];
+
+    let participantes = [];
+    let editandoId = null;
+    let paginaActual = 1;
+    const REG_POR_PAGINA = 15;
+    let filtroBusqueda = "", filtroPerfil = "", filtroDomicilio = "";
+    let modoVerActivo = false;
+
+    const tablaBody = document.getElementById('tablaBody');
+    const tablaThead = document.getElementById('tablaThead');
+    const searchInput = document.getElementById('searchInput');
+    const perfilFilter = document.getElementById('perfilFilter');
+    const domicilioFilter = document.getElementById('domicilioFilter');
+    const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+    const prevPageBtn = document.getElementById('prevPageBtn');
+    const nextPageBtn = document.getElementById('nextPageBtn');
+    const pageInfoText = document.getElementById('pageInfoText');
+    const pageNumbersSpan = document.getElementById('pageNumbers');
+    const openModalBtn = document.getElementById('openModalBtn');
+    const modalOverlay = document.getElementById('participantModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const cancelModalBtn = document.getElementById('cancelModalBtn');
+    const saveModalBtn = document.getElementById('saveModalBtn');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalFieldsContainer = document.getElementById('modalFieldsContainer');
+    const modalFeedback = document.getElementById('modalFeedback');
+    const printGlobalBtn = document.getElementById('printGlobalBtn');
+    const toast = document.getElementById('feedbackToast');
+    const STORAGE_KEY = 'entrenamiento_mentores_argentina_vacio_real';
+
+    function showToast(msg, isError = false) {
+        toast.textContent = msg;
+        toast.style.backgroundColor = isError ? '#b91c1c' : '#0e4b3a';
+        toast.style.opacity = '1';
+        setTimeout(() => toast.style.opacity = '0', 2500);
+    }
+
+    function guardarStorage() { localStorage.setItem(STORAGE_KEY, JSON.stringify(participantes)); }
+    function cargarStorage() {
+        const data = localStorage.getItem(STORAGE_KEY);
+        if (data && JSON.parse(data).length >= 0) {
+            participantes = JSON.parse(data);
+        } else {
+            participantes = []; // Sin datos de ejemplo
+        }
+        participantes.sort((a,b) => b.id - a.id);
+    }
+
+    function splitApellidoNombre(nombreCompleto) {
+        if (!nombreCompleto) return { apellido: '', nombre: '' };
+        const partes = nombreCompleto.trim().split(/\s+/);
+        if (partes.length === 1) return { apellido: partes[0], nombre: '' };
+        const apellido = partes.pop();
+        const nombre = partes.join(' ');
+        return { apellido, nombre };
+    }
+
+    function generarCabeceraTabla() {
+        const columnas = ["N° Registro", "Apellido", "Nombre", "Edad", "Ciudad", "Iglesia", "Acciones"];
+        tablaThead.innerHTML = '</table>' + columnas.map(col => `<th>${col}</th>`).join('') + '</table>';
+    }
+
+    function getRegistrosFiltrados() {
+        let filtrados = [...participantes];
+        if (filtroBusqueda.trim()) {
+            const term = filtroBusqueda.trim().toLowerCase();
+            filtrados = filtrados.filter(p => (p.apellidos_nombres || "").toLowerCase().includes(term) || (p.telefono || "").includes(term));
+        }
+        if (filtroPerfil) filtrados = filtrados.filter(p => p.perfil_sistema === filtroPerfil);
+        if (filtroDomicilio.trim()) {
+            const domTerm = filtroDomicilio.trim().toLowerCase();
+            filtrados = filtrados.filter(p => (p.calle || "").toLowerCase().includes(domTerm) || (p.barrio || "").toLowerCase().includes(domTerm));
+        }
+        filtrados.sort((a,b) => b.id - a.id);
+        return filtrados;
+    }
+
+    function renderizarTabla() {
+        const registros = getRegistrosFiltrados();
+        const total = registros.length;
+        const totalPaginas = Math.ceil(total / REG_POR_PAGINA);
+        if (paginaActual > totalPaginas && totalPaginas > 0) paginaActual = totalPaginas;
+        if (paginaActual < 1) paginaActual = 1;
+        if (total === 0) {
+            tablaBody.innerHTML = `<tr class="empty-row"><td colspan="7">📭 No hay registros. Use "Nuevo Registro" para comenzar.</td></tr>`;
+            actualizarInfoPaginacion(0,0,0); 
+            renderizarBotonesPaginacion(totalPaginas);
+            return;
+        }
+        const inicio = (paginaActual-1)*REG_POR_PAGINA;
+        const fin = Math.min(inicio+REG_POR_PAGINA, total);
+        const paginaRegistros = registros.slice(inicio, fin);
+        let html = '';
+        for (const p of paginaRegistros) {
+            const { apellido, nombre } = splitApellidoNombre(p.apellidos_nombres);
+            html += '<tr>';
+            html += `<td style="font-weight:700;">${p.id}</td>`;
+            html += `<td>${escapeHtml(apellido)}</td>`;
+            html += `<td>${escapeHtml(nombre)}</td>`;
+            html += `<td>${p.edad ?? '—'}</td>`;
+            html += `<td>${escapeHtml(p.ciudad || '—')}</td>`;
+            html += `<td>${escapeHtml(p.nombre_iglesia || '—')}</td>`;
+            html += `<td class="acciones">
+                        <button class="icon-btn view" data-id="${p.id}">👁️ Ver</button>
+                        <button class="icon-btn edit" data-id="${p.id}">✏️ Editar</button>
+                        <button class="icon-btn delete" data-id="${p.id}">🗑️ Borrar</button>
+                       </td>`;
+            html += '</tr>';
+        }
+        tablaBody.innerHTML = html;
+        actualizarInfoPaginacion(inicio+1, fin, total);
+        renderizarBotonesPaginacion(totalPaginas);
+        document.querySelectorAll('.view').forEach(btn => btn.addEventListener('click', () => abrirModalVer(parseInt(btn.dataset.id))));
+        document.querySelectorAll('.edit').forEach(btn => btn.addEventListener('click', () => abrirModalEdicion(parseInt(btn.dataset.id))));
+        document.querySelectorAll('.delete').forEach(btn => btn.addEventListener('click', () => eliminarRegistro(parseInt(btn.dataset.id))));
+    }
+
+    function actualizarInfoPaginacion(desde, hasta, total) { pageInfoText.innerText = total === 0 ? 'Mostrando 0-0 de 0 registros' : `Mostrando ${desde}-${hasta} de ${total} registros`; }
+    function renderizarBotonesPaginacion(totalPaginas) {
+        if (totalPaginas <= 1) { pageNumbersSpan.innerHTML = ''; prevPageBtn.disabled = true; nextPageBtn.disabled = true; return; }
+        prevPageBtn.disabled = (paginaActual === 1);
+        nextPageBtn.disabled = (paginaActual === totalPaginas);
+        let btns = '';
+        for (let i=1; i<=totalPaginas; i++) btns += `<button class="page-btn ${i===paginaActual?'active':''}" data-page="${i}">${i}</button>`;
+        pageNumbersSpan.innerHTML = btns;
+        document.querySelectorAll('[data-page]').forEach(btn => btn.addEventListener('click', (e) => { paginaActual = parseInt(btn.dataset.page); renderizarTabla(); }));
+    }
+    function escapeHtml(str) { if(!str) return ''; return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+    function eliminarRegistro(id) { if(confirm('¿Eliminar permanentemente este registro?')) { participantes = participantes.filter(p => p.id !== id); guardarStorage(); if(editandoId === id) cerrarModal(); paginaActual = 1; renderizarTabla(); showToast('Registro eliminado'); } }
+
+    function generarModalFormulario(registro = null, readonly = false) {
+        modalFieldsContainer.innerHTML = '';
+        for (const campo of CAMPOS_EXCEL) {
+            const div = document.createElement('div'); div.className = 'modal-field';
+            const label = document.createElement('label'); label.textContent = campo.label + (campo.required ? ' *' : '');
+            div.appendChild(label);
+            let input;
+            if (campo.type === 'select') {
+                input = document.createElement('select');
+                input.innerHTML = `<option value="">Seleccionar</option>` + campo.options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+                if (registro && registro[campo.key]) input.value = registro[campo.key];
+                else if (campo.key === 'perfil_sistema') input.value = 'Participante';
+            } else if (campo.type === 'textarea') {
+                input = document.createElement('textarea'); input.rows = 2;
+                if (registro && registro[campo.key]) input.value = registro[campo.key];
+            } else {
+                input = document.createElement('input'); input.type = campo.type || 'text';
+                if (campo.min !== undefined) input.min = campo.min; if (campo.max !== undefined) input.max = campo.max;
+                if (registro && registro[campo.key]) input.value = registro[campo.key];
+            }
+            input.id = `modal_${campo.key}`; input.name = campo.key;
+            if (campo.required) input.required = true;
+            if (readonly) input.disabled = true;
+            div.appendChild(input);
+            modalFieldsContainer.appendChild(div);
+        }
+    }
+
+    function resetModalParaEdicion() {
+        modoVerActivo = false;
+        saveModalBtn.style.display = 'inline-flex';
+        cancelModalBtn.innerText = 'Cancelar';
+        editandoId = null;
+    }
+
+    function abrirModalNuevo() {
+        resetModalParaEdicion();
+        editandoId = null;
+        modalTitle.innerText = '📝 Nuevo Registro';
+        generarModalFormulario(null, false);
+        modalFeedback.innerText = '';
+        modalOverlay.classList.add('active');
+    }
+
+    function abrirModalEdicion(id) {
+        const p = participantes.find(x => x.id === id);
+        if (!p) return;
+        resetModalParaEdicion();
+        editandoId = id;
+        modalTitle.innerText = '✏️ Editar registro';
+        generarModalFormulario(p, false);
+        modalFeedback.innerText = '';
+        modalOverlay.classList.add('active');
+    }
+
+    function abrirModalVer(id) {
+        const p = participantes.find(x => x.id === id);
+        if (!p) return;
+        modoVerActivo = true;
+        editandoId = null;
+        modalTitle.innerText = '🔍 Ver detalles completos';
+        generarModalFormulario(p, true);
+        saveModalBtn.style.display = 'none';
+        cancelModalBtn.innerText = 'Cerrar';
+        modalFeedback.innerText = '';
+        modalOverlay.classList.add('active');
+    }
+
+    function cerrarModal() {
+        modalOverlay.classList.remove('active');
+        modoVerActivo = false;
+        editandoId = null;
+        saveModalBtn.style.display = 'inline-flex';
+        cancelModalBtn.innerText = 'Cancelar';
+    }
+
+    function guardarDesdeModal() {
+        if (modoVerActivo) { cerrarModal(); return; }
+        const nuevoRegistro = { id: editandoId };
+        let faltaObligatorio = false;
+        let primerCampoFaltante = '';
+        for (const campo of CAMPOS_EXCEL) {
+            if (!campo.required) continue;
+            const input = document.getElementById(`modal_${campo.key}`);
+            if (!input) continue;
+            let valor = input.value.trim();
+            if (!valor) {
+                faltaObligatorio = true;
+                primerCampoFaltante = campo.label;
+                break;
+            }
+        }
+        if (faltaObligatorio) {
+            const msg = `❌ El campo "${primerCampoFaltante}" es obligatorio.`;
+            modalFeedback.innerText = msg;
+            showToast(msg, true);
+            return;
+        }
+        // Recoger valores
+        for (const campo of CAMPOS_EXCEL) {
+            const input = document.getElementById(`modal_${campo.key}`);
+            if (!input) continue;
+            let valor = input.value.trim();
+            if (campo.key === 'modulos') { let num = parseInt(valor); if (isNaN(num)) num = 0; if (num < 0) num = 0; if (num > 20) num = 20; valor = num; }
+            nuevoRegistro[campo.key] = valor;
+        }
+        const telefono = nuevoRegistro.telefono;
+        if (telefono && participantes.some(p => p.telefono === telefono && p.id !== editandoId)) { 
+            const msg = '⚠️ Ya existe un participante con ese Teléfono/DNI.';
+            modalFeedback.innerText = msg;
+            showToast(msg, true);
+            return; 
+        }
+        if (editandoId === null) {
+            const nuevoId = participantes.length === 0 ? 1 : Math.max(...participantes.map(p => p.id)) + 1;
+            nuevoRegistro.id = nuevoId;
+            participantes.push(nuevoRegistro);
+            showToast(`✨ Nuevo registro N°${nuevoId} agregado`);
+        } else {
+            const index = participantes.findIndex(p => p.id === editandoId);
+            if (index !== -1) { 
+                participantes[index] = { ...participantes[index], ...nuevoRegistro }; 
+                showToast('✅ Registro actualizado');
+            } else {
+                modalFeedback.innerText = 'Error al editar';
+                return;
+            }
+        }
+        guardarStorage();
+        participantes.sort((a,b) => b.id - a.id);
+        paginaActual = 1;
+        renderizarTabla();
+        cerrarModal();
+    }
+
+    function aplicarFiltros() { filtroBusqueda = searchInput.value; filtroPerfil = perfilFilter.value; filtroDomicilio = domicilioFilter.value; paginaActual = 1; renderizarTabla(); }
+    function resetearFiltros() { searchInput.value = ''; perfilFilter.value = ''; domicilioFilter.value = ''; filtroBusqueda = ''; filtroPerfil = ''; filtroDomicilio = ''; paginaActual = 1; renderizarTabla(); showToast('Filtros limpiados'); }
+    
+    function imprimirListado() {
+        const datos = getRegistrosFiltrados();
+        if (datos.length === 0) { showToast('No hay registros para imprimir', true); return; }
+        const ventana = window.open('','_blank');
+        ventana.document.write(`<html><head><title>Listado completo - Perfiles Argentina</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:Inter;padding:2rem;}table{border-collapse:collapse;width:100%;}th,td{border:1px solid #aaa;padding:6px;text-align:left;}</style></head><body><h2>📋 Listado de Participantes - Argentina</h2><p>Fecha: ${new Date().toLocaleDateString()} | Total: ${datos.length}</p><table><thead><tr><th>ID</th>${CAMPOS_EXCEL.filter(c=>c.tabla!==false).map(c=>`<th>${c.label}</th>`).join('')}</tr></thead><tbody>`);
+        datos.forEach(p => { ventana.document.write('<tr>'); ventana.document.write(`<td>${p.id}</td>`); for (const campo of CAMPOS_EXCEL.filter(c=>c.tabla!==false)) { let val = p[campo.key] !== undefined ? p[campo.key] : '—'; ventana.document.write(`<td>${escapeHtml(String(val))}</td>`); } ventana.document.write('</tr>'); });
+        ventana.document.write(`</tbody></table></body></html>`); ventana.document.close(); ventana.print();
+    }
+
+    function bindEvents() {
+        openModalBtn.addEventListener('click', abrirModalNuevo); 
+        closeModalBtn.addEventListener('click', cerrarModal); 
+        cancelModalBtn.addEventListener('click', cerrarModal);
+        saveModalBtn.addEventListener('click', guardarDesdeModal); 
+        searchInput.addEventListener('input', aplicarFiltros); 
+        perfilFilter.addEventListener('change', aplicarFiltros);
+        domicilioFilter.addEventListener('input', aplicarFiltros); 
+        resetFiltersBtn.addEventListener('click', resetearFiltros);
+        prevPageBtn.addEventListener('click', () => { if(paginaActual>1){ paginaActual--; renderizarTabla(); } });
+        nextPageBtn.addEventListener('click', () => { const total = Math.ceil(getRegistrosFiltrados().length/REG_POR_PAGINA); if(paginaActual<total){ paginaActual++; renderizarTabla(); } });
+        printGlobalBtn.addEventListener('click', imprimirListado); 
+        window.addEventListener('click', (e) => { if(e.target === modalOverlay) cerrarModal(); });
+    }
+    
+    function init() { cargarStorage(); generarCabeceraTabla(); bindEvents(); renderizarTabla(); }
+    init();
+</script>
+</body>
+</html>
